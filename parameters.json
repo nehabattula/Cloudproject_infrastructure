@@ -6,6 +6,10 @@
         {
         "ParameterKey": "EnvironmentName",
         "ParameterValue": "ProdEnvironment1"
+        },
+        {
+        "ParameterKey": "DestinationRouteCIDR",
+        "ParameterValue": "0.0.0.0/0"             
         }
 
 ]
