@@ -13,6 +13,12 @@ Parameters:
     Type: String
     Default: 10.192.0.0/16
 
+  DestinationRouteCIDR: 
+    Description: Destination CIDR for Route
+    Type: String
+    Default: 0.0.0.0/0
+  
+
 
 Resources:
 
@@ -85,7 +91,7 @@ Resources:
     DependsOn: InternetGatewayAttachment
     Properties:
       RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
+      DestinationCidrBlock: !Ref DestinationRouteCIDR
       GatewayId: !Ref InternetGateway
 
   PublicSubnet1RouteTableAssociation:
