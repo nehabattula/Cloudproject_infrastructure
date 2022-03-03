@@ -1,15 +1,40 @@
 [
         {
         "ParameterKey": "VpcCIDR",
-        "ParameterValue": "10.192.0.0/16"
+        "ParameterValue": "10.192.0.0/17"
         },
         {
         "ParameterKey": "EnvironmentName",
-        "ParameterValue": "ProdEnvironment1"
+        "ParameterValue": "DevEnvironment1"
         },
         {
         "ParameterKey": "DestinationRouteCIDR",
         "ParameterValue": "0.0.0.0/0"             
+        },
+
+        {
+          "ParameterKey":"ImageAMIId",
+          "ParameterValue":"ami-001b18ee0dafaf8c2"      
+        },
+
+        {
+          "ParameterKey":"InstanceName",
+          "ParameterValue":"t2.micro"      
+        },
+
+        {
+          "ParameterKey":"SSHKey",
+          "ParameterValue":"csye6225test"      
+        },
+
+        {
+          "ParameterKey":"VolumeTypeValue",
+          "ParameterValue":"gp2"      
+        },
+
+        {
+          "ParameterKey":"VolumeSizeValue",
+          "ParameterValue":"20"      
         }
 
 ]
