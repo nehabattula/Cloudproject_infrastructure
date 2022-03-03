@@ -14,7 +14,7 @@
 
         {
           "ParameterKey":"ImageAMIId",
-          "ParameterValue":"ami-001b18ee0dafaf8c2"      
+            "ParameterValue":"ami-06fb17ccd0a67bcb4"      
         },
 
         {
