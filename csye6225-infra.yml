@@ -168,7 +168,7 @@ Resources:
     Properties: 
       InstanceType: !Ref InstanceName
       ImageId: !Ref ImageAMIId
-      DisableApiTermination: true
+      DisableApiTermination: false
       KeyName: !Ref SSHKey
       SecurityGroupIds : 
       - !GetAtt "application.GroupId"
