@@ -17,7 +17,33 @@ Parameters:
     Description: Destination CIDR for Route
     Type: String
     Default: 0.0.0.0/0
+
   
+  ImageAMIId: 
+    Description: Image ID of the newly formed AMI through packer
+    Type: String
+    Default: 0.0.0.0/0
+  
+  InstanceName: 
+    Description: Name of the EC2 instance
+    Type: String
+    Default: t2.micro
+
+  SSHKey: 
+    Description: SSH key set up for the AWS account
+    Type: String
+    Default: csye6225test
+
+
+  VolumeTypeValue: 
+    Description: Volume type for EC2 instance
+    Type: String
+    Default: gp2
+
+  VolumeSizeValue: 
+    Description: Volume Size of the EC2 instance
+    Type: String
+    Default: 20 
 
 
 Resources:
@@ -111,3 +137,69 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet3
+
+
+  application :  
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: String
+      GroupName: String
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 3001
+          ToPort: 3001  
+      VpcId: !Ref VPC
+    
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      InstanceType: !Ref InstanceName
+      ImageId: !Ref ImageAMIId
+      DisableApiTermination: false
+      KeyName: !Ref SSHKey
+      SecurityGroupIds : 
+      - !GetAtt "application.GroupId"
+      SubnetId : !Ref PublicSubnet1
+      BlockDeviceMappings:
+      - DeviceName: "/dev/sdm"
+        Ebs: 
+          VolumeType: !Ref VolumeTypeValue
+          DeleteOnTermination: "true"
+          VolumeSize: !Ref VolumeSizeValue
+
+  application :  
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: String
+      GroupName: String
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 3001
+          ToPort: 3001  
+      VpcId: !Ref VPC
