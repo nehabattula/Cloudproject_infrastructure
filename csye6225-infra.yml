@@ -8,6 +8,24 @@ Parameters:
     Type: String
     Default: dev_env
 
+  DBInstanceIdentifier:
+    Type: String
+    Default: "webservice-db"
+
+  DBUsername:
+    NoEcho: "true"
+    Description: Username for Postgresql database access
+    Type: String
+    Default: "postgres"
+
+  DBPassword:
+    NoEcho: "true"
+    Description: Password Postgresql database access
+    Type: String
+
+
+
+
   VpcCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
@@ -45,7 +63,6 @@ Parameters:
     Type: String
     Default: 20 
 
-
 Resources:
 
   VPC:
@@ -76,7 +93,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
-      CidrBlock: !Select [ 0, !Cidr [ !GetAtt VPC.CidrBlock, 3, 8 ]]
+      CidrBlock: !Select [ 0, !Cidr [ !GetAtt VPC.CidrBlock, 6, 8 ]]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -87,7 +104,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 1, !GetAZs  '' ]
-      CidrBlock: !Select [ 1, !Cidr [ !GetAtt VPC.CidrBlock, 3, 8 ]]
+      CidrBlock: !Select [ 1, !Cidr [ !GetAtt VPC.CidrBlock, 6, 8 ]]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -98,7 +115,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [ 2, !GetAZs  '' ]
-      CidrBlock: !Select [ 2, !Cidr [ !GetAtt VPC.CidrBlock, 3, 8 ]]
+      CidrBlock: !Select [ 2, !Cidr [ !GetAtt VPC.CidrBlock, 6, 8 ]]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -174,32 +191,197 @@ Resources:
       - !GetAtt "application.GroupId"
       SubnetId : !Ref PublicSubnet1
       BlockDeviceMappings:
-      - DeviceName: "/dev/sdm"
-        Ebs: 
-          VolumeType: !Ref VolumeTypeValue
-          DeleteOnTermination: "true"
-          VolumeSize: !Ref VolumeSizeValue
+        - DeviceName: "/dev/sdm"
+          Ebs: 
+            VolumeType: !Ref VolumeTypeValue
+            DeleteOnTermination: "true"
+            VolumeSize: !Ref VolumeSizeValue
+      IamInstanceProfile: !Ref EC2InstanceProfile
 
-  application :  
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: String
-      GroupName: String
-      SecurityGroupIngress: 
-        - IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
-          FromPort: 80
-          ToPort: 80
-        - IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
-          FromPort: 22
-          ToPort: 22
-        - IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
-          FromPort: 443
-          ToPort: 443
-        - IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
-          FromPort: 3001
-          ToPort: 3001  
+  
+
+
+ 
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Select [ 3, !Cidr [ !GetAtt VPC.CidrBlock, 6, 8 ]]
+      MapPublicIpOnLaunch: false
+
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Select [ 4, !Cidr [ !GetAtt VPC.CidrBlock, 6, 8 ]]
+      MapPublicIpOnLaunch: false
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs  '' ]
+      CidrBlock: !Select [ 5, !Cidr [ !GetAtt VPC.CidrBlock, 6, 8 ]]
+      MapPublicIpOnLaunch: false
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1
+
+  
+
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet2
+
+
+
+
+  PrivateSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet3
+
+
+
+  database: 
+    Type: AWS::RDS::DBSecurityGroup
+    Properties:
+      EC2VpcId: Ref !VPC
+      DBSecurityGroupIngress: Ref: "application"
+      GroupDescription: 'Postgres DB security group'
+      DBSecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+        - EC2SecurityGroupName: !Ref application
+
+  
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: subnetgroupdescription
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+  
+  DBinstance: 
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBSecurityGroups: 
+        - 
+          Ref: database
+      AllocatedStorage: "5"
+      DBInstanceIdentifier: csye6225
+      DBInstanceClass: "db.t3.micro"
+      Engine: "postgres"
+      MultiAZ: false
+      MasterUsername: csye6225
+      MasterUserPassword: Nevika@1996
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PublicAccessible: false
+      DBName: csye6225
+  
+    DeletionPolicy: "Snapshot"
+
+  
+  S3Bucket:
+    Type: AWS::S3::Bucket
+
+    Properties:
+      BucketName: !Sub 
+          - RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]]
+          - EnvVar: !Ref RootDomainName
+          - '${RandomGUID}.${EnvVar}'
+      AccessControl: Private
+
+      LifecycleConfiguration:
+        Rules:
+          - Id: Rule for transition from Standard storage to Standard_IA
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      DeletionPolicy: Delete
+
+
+  RDSParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Family: postgres12
+      Description: Configuration values for postgres
+      Parameters: 
+        Shared_preload_libraries:pg_stat_statements       
+
+
+  WebAppS3:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyName: "myWebAppS3"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "s3:*"
+            Resource: [
+                "arn:aws:s3:::YOUR_BUCKET_NAME",
+                "arn:aws:s3:::YOUR_BUCKET_NAME/*"
+            ]  
+              
+    Roles:
+      - Ref: "EC2-CSYE6225"
+
+
+  EC2-CSYE6225:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolesPolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+  
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - Ref: "EC2-CSYE6225"

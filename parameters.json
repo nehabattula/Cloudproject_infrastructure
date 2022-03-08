@@ -1,40 +1,65 @@
 [
-        {
-        "ParameterKey": "VpcCIDR",
-        "ParameterValue": "10.192.0.0/17"
-        },
-        {
-        "ParameterKey": "EnvironmentName",
-        "ParameterValue": "DevEnvironment1"
-        },
-        {
-        "ParameterKey": "DestinationRouteCIDR",
-        "ParameterValue": "0.0.0.0/0"             
-        },
+  {
+  "ParameterKey": "VpcCIDR",
+  "ParameterValue": "10.192.0.0/17"
+  },
+  {
+  "ParameterKey": "EnvironmentName",
+  "ParameterValue": "DevEnvironment1"
+  },
 
-        {
-          "ParameterKey":"ImageAMIId",
-            "ParameterValue":"ami-06fb17ccd0a67bcb4"      
-        },
+  {
+  "ParameterKey": "EnvironmentType",
+  "ParameterValue": "Dev"
+  },
 
-        {
-          "ParameterKey":"InstanceName",
-          "ParameterValue":"t2.micro"      
-        },
+  {
+    "ParameterKey": "RootDomainName",
+    "ParameterValue": "dev.nehabattula.me"
+  },
 
-        {
-          "ParameterKey":"SSHKey",
-          "ParameterValue":"csye6225test"      
-        },
+    
 
-        {
-          "ParameterKey":"VolumeTypeValue",
-          "ParameterValue":"gp2"      
-        },
+  {
+    "ParameterKey": "DBUsername",
+    "ParameterValue": "postgres"
+    },
 
-        {
-          "ParameterKey":"VolumeSizeValue",
-          "ParameterValue":"20"      
-        }
+
+    {
+      "ParameterKey": "DBPassword",
+      "ParameterValue": "1234"
+      },
+
+
+  {
+  "ParameterKey": "DestinationRouteCIDR",
+  "ParameterValue": "0.0.0.0/0"             
+  },
+
+  {
+    "ParameterKey":"ImageAMIId",
+      "ParameterValue":"ami-039b904f07f038240"      
+  },
+
+  {
+    "ParameterKey":"InstanceName",
+    "ParameterValue":"t2.micro"      
+  },
+
+  {
+    "ParameterKey":"SSHKey",
+    "ParameterValue":"csye6225test"      
+  },
+
+  {
+    "ParameterKey":"VolumeTypeValue",
+    "ParameterValue":"gp2"      
+  },
+
+  {
+    "ParameterKey":"VolumeSizeValue",
+    "ParameterValue":"20"      
+  }
 
 ]
