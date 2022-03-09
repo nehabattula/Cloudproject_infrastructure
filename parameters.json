@@ -26,11 +26,10 @@
     },
 
 
-    {
+  {
       "ParameterKey": "DBPassword",
       "ParameterValue": "1234"
-      },
-
+  },
 
   {
   "ParameterKey": "DestinationRouteCIDR",

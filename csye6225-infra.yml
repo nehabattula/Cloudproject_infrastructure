@@ -63,6 +63,12 @@ Parameters:
     Type: String
     Default: 20 
 
+  RootDomainName:
+    Description: S3 bucket name
+    Type: String
+    Default: dev.domain.tld
+ 
+
 Resources:
 
   VPC:
@@ -81,7 +87,9 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
+    
 
+        
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -198,10 +206,16 @@ Resources:
             VolumeSize: !Ref VolumeSizeValue
       IamInstanceProfile: !Ref EC2InstanceProfile
 
-  
+      UserData:
+        Fn::Base64: 
+        !Sub |
 
+         #!/bin/bash
+         out=$(aws rds describe-db-instances --query 'DBInstances[*].[Endpoint.Address]' --filters Name=db-instance-id,Values=csye6225)
+         echo 'export DB_CONNECTION="${out}"' >> /etc/environment
+         echo export DB_USERNAME="my user" >> /etc/environment
+         echo export DB_PASSWORD="my password" >> /etc/environment
 
- 
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -246,8 +260,6 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet1
 
-  
-
 
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -255,30 +267,26 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet2
 
-
-
-
   PrivateSubnet3RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet3
 
-
-
   database: 
-    Type: AWS::RDS::DBSecurityGroup
+    Type: AWS::EC2::SecurityGroup
     Properties:
       EC2VpcId: Ref !VPC
-      DBSecurityGroupIngress: Ref: "application"
+      # DBSecurityGroupIngress: Ref: "application"
+      GroupName: DBSecurityGroup
       GroupDescription: 'Postgres DB security group'
-      DBSecurityGroupIngress:
+      SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-        - EC2SecurityGroupName: !Ref application
-
-  
+      SourceSecurityGroupId: 
+        - !GetAtt "application.GroupId"
+      
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
@@ -312,10 +320,9 @@ Resources:
     Type: AWS::S3::Bucket
 
     Properties:
-      BucketName: !Sub 
-          - RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]]
+      BucketName: !Join
           - EnvVar: !Ref RootDomainName
-          - '${RandomGUID}.${EnvVar}'
+          - '!Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]].${EnvVar}'
       AccessControl: Private
 
       LifecycleConfiguration:
@@ -385,3 +392,6 @@ Resources:
       Path: "/"
       Roles:
         - Ref: "EC2-CSYE6225"
+
+  
+
