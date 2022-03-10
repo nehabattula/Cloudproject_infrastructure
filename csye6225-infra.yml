@@ -8,9 +8,9 @@ Parameters:
     Type: String
     Default: dev_env
 
-  DBInstanceIdentifier:
+  DBInstanceIden:
     Type: String
-    Default: "webservice-db"
+    Default: "csye6225"
 
   DBUsername:
     NoEcho: "true"
@@ -206,15 +206,14 @@ Resources:
             VolumeSize: !Ref VolumeSizeValue
       IamInstanceProfile: !Ref EC2InstanceProfile
 
-      UserData:
-        Fn::Base64: 
-        !Sub |
-
-         #!/bin/bash
-         out=$(aws rds describe-db-instances --query 'DBInstances[*].[Endpoint.Address]' --filters Name=db-instance-id,Values=csye6225)
-         echo 'export DB_CONNECTION="${out}"' >> /etc/environment
-         echo export DB_USERNAME="my user" >> /etc/environment
-         echo export DB_PASSWORD="my password" >> /etc/environment
+      # UserData:
+      #   Fn::Base64: 
+          # !Sub |
+          #   #!/bin/bash
+          #   out=$(aws rds describe-db-instances --query 'DBInstances[*].[Endpoint.Address]' --filters Name=db-instance-id,Values=csye6225)
+          #   echo 'export DB_CONNECTION="${out}"' >> /etc/environment
+          #   echo export DB_USERNAME="my user" >> /etc/environment
+          #   echo export DB_PASSWORD="my password" >> /etc/environment
 
 
   PrivateSubnet1:
@@ -248,11 +247,6 @@ Resources:
       VpcId: !Ref VPC
 
 
-  PrivateRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable1
-
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -276,16 +270,15 @@ Resources:
   database: 
     Type: AWS::EC2::SecurityGroup
     Properties:
-      EC2VpcId: Ref !VPC
+      VpcId: !Ref VPC
       # DBSecurityGroupIngress: Ref: "application"
       GroupName: DBSecurityGroup
       GroupDescription: 'Postgres DB security group'
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-      SourceSecurityGroupId: 
-        - !GetAtt "application.GroupId"
+        IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        SourceSecurityGroupId: !GetAtt application.GroupId
       
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -299,18 +292,16 @@ Resources:
   DBinstance: 
     Type: AWS::RDS::DBInstance
     Properties: 
-      DBSecurityGroups: 
-        - 
-          Ref: database
+      VPCSecurityGroups: [!Ref database]
       AllocatedStorage: "5"
-      DBInstanceIdentifier: csye6225
+      DBInstanceIdentifier: !Ref DBInstanceIden
       DBInstanceClass: "db.t3.micro"
-      Engine: "postgres"
+      Engine: postgres
       MultiAZ: false
       MasterUsername: csye6225
-      MasterUserPassword: Nevika@1996
+      MasterUserPassword: Nevika.1996
       DBSubnetGroupName: !Ref DBSubnetGroup
-      PublicAccessible: false
+      PubliclyAccessible: false
       DBName: csye6225
   
     DeletionPolicy: "Snapshot"
@@ -318,11 +309,19 @@ Resources:
   
   S3Bucket:
     Type: AWS::S3::Bucket
-
     Properties:
       BucketName: !Join
-          - EnvVar: !Ref RootDomainName
-          - '!Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]].${EnvVar}'
+        - "-"
+        - - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+          - !Ref RootDomainName
       AccessControl: Private
 
       LifecycleConfiguration:
@@ -331,6 +330,7 @@ Resources:
             Transitions:
               - TransitionInDays: 30
                 StorageClass: STANDARD_IA
+            Status: Enabled
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -342,7 +342,6 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      DeletionPolicy: Delete
 
 
   RDSParameterGroup:
@@ -350,48 +349,51 @@ Resources:
     Properties:
       Family: postgres12
       Description: Configuration values for postgres
-      Parameters: 
-        Shared_preload_libraries:pg_stat_statements       
+     
 
 
   WebAppS3:
     Type: AWS::IAM::Policy
     Properties: 
-      PolicyName: "myWebAppS3"
+      PolicyName: "WebAppS3"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: "Allow"
-            Action: "s3:*"
-            Resource: [
-                "arn:aws:s3:::YOUR_BUCKET_NAME",
-                "arn:aws:s3:::YOUR_BUCKET_NAME/*"
-            ]  
-              
-    Roles:
-      - Ref: "EC2-CSYE6225"
+            Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+            Resource:
+            - !Join [":::",["arn:aws:s3", !Ref S3Bucket]]
+            - !Join ["/", [!Join [":::",["arn:aws:s3", !Ref S3Bucket]],"*"]]
+                   
+      Roles:
+        - !Ref EC2CSYE6225
 
 
-  EC2-CSYE6225:
+  EC2CSYE6225:
     Type: AWS::IAM::Role
     Properties:
-      AssumeRolesPolicyDocument:
+      AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: "Allow"
             Principal:
               Service:
-                - "ec2.amazonaws.com"
+                - ec2.amazonaws.com
             Action:
-              - "sts:AssumeRole"
-      Path: "/"
+              - 'sts:AssumeRole'
+      Path: /
+      RoleName: EC2-CSYE6225
+
   
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      Path: "/"
+      Path: /
       Roles:
-        - Ref: "EC2-CSYE6225"
+        - !Ref EC2CSYE6225
 
   
 

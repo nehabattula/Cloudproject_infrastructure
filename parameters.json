@@ -5,7 +5,7 @@
   },
   {
   "ParameterKey": "EnvironmentName",
-  "ParameterValue": "DevEnvironment1"
+  "ParameterValue": "Dev"
   },
 
   {
@@ -38,7 +38,7 @@
 
   {
     "ParameterKey":"ImageAMIId",
-      "ParameterValue":"ami-039b904f07f038240"      
+      "ParameterValue":"ami-0ec6b4d29a55ac740"      
   },
 
   {
@@ -59,6 +59,13 @@
   {
     "ParameterKey":"VolumeSizeValue",
     "ParameterValue":"20"      
+  },
+
+  
+
+  {
+    "ParameterKey":"DBInstanceIden",
+    "ParameterValue":"csye6225"      
   }
 
 ]
