@@ -28,7 +28,7 @@
 
   {
       "ParameterKey": "DBPassword",
-      "ParameterValue": "1234"
+      "ParameterValue": "Nevika.1996"
   },
 
   {
@@ -38,7 +38,7 @@
 
   {
     "ParameterKey":"ImageAMIId",
-      "ParameterValue":"ami-0ec6b4d29a55ac740"      
+      "ParameterValue":"ami-07d99c523d18ef207"      
   },
 
   {
@@ -46,6 +46,7 @@
     "ParameterValue":"t2.micro"      
   },
 
+  
   {
     "ParameterKey":"SSHKey",
     "ParameterValue":"csye6225test"      

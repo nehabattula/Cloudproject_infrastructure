@@ -23,9 +23,6 @@ Parameters:
     Description: Password Postgresql database access
     Type: String
 
-
-
-
   VpcCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
@@ -63,6 +60,16 @@ Parameters:
     Type: String
     Default: 20 
 
+  SecurityGroupName:
+    Description: Security Group Name
+    Type: String  
+    Default: ""
+
+  SecurityGroupDescription:
+    Description: Security Group Description
+    Type: String
+    Default: ""
+  
   RootDomainName:
     Description: S3 bucket name
     Type: String
@@ -87,9 +94,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
-    
-
-        
+           
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -163,59 +168,48 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet3
 
-
   application :  
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: String
-      GroupName: String
+      GroupDescription: "Group Description"
+      GroupName: "Security Group"
       SecurityGroupIngress: 
         - IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
           FromPort: 80
           ToPort: 80
-        - IpProtocol: tcp
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-        - IpProtocol: tcp
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-        - IpProtocol: tcp
           CidrIp: 0.0.0.0/0
-          FromPort: 3001
-          ToPort: 3001  
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3002
+          ToPort: 3002  
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      
       VpcId: !Ref VPC
     
-  EC2Instance:
-    Type: AWS::EC2::Instance
-    Properties: 
-      InstanceType: !Ref InstanceName
-      ImageId: !Ref ImageAMIId
-      DisableApiTermination: false
-      KeyName: !Ref SSHKey
-      SecurityGroupIds : 
-      - !GetAtt "application.GroupId"
-      SubnetId : !Ref PublicSubnet1
-      BlockDeviceMappings:
-        - DeviceName: "/dev/sdm"
-          Ebs: 
-            VolumeType: !Ref VolumeTypeValue
-            DeleteOnTermination: "true"
-            VolumeSize: !Ref VolumeSizeValue
-      IamInstanceProfile: !Ref EC2InstanceProfile
-
-      # UserData:
-      #   Fn::Base64: 
-          # !Sub |
-          #   #!/bin/bash
-          #   out=$(aws rds describe-db-instances --query 'DBInstances[*].[Endpoint.Address]' --filters Name=db-instance-id,Values=csye6225)
-          #   echo 'export DB_CONNECTION="${out}"' >> /etc/environment
-          #   echo export DB_USERNAME="my user" >> /etc/environment
-          #   echo export DB_PASSWORD="my password" >> /etc/environment
-
-
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -223,7 +217,6 @@ Resources:
       AvailabilityZone: !Select [ 0, !GetAZs  '' ]
       CidrBlock: !Select [ 3, !Cidr [ !GetAtt VPC.CidrBlock, 6, 8 ]]
       MapPublicIpOnLaunch: false
-
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -246,14 +239,11 @@ Resources:
     Properties:
       VpcId: !Ref VPC
 
-
-
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet1
-
 
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -267,19 +257,6 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet3
 
-  database: 
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId: !Ref VPC
-      # DBSecurityGroupIngress: Ref: "application"
-      GroupName: DBSecurityGroup
-      GroupDescription: 'Postgres DB security group'
-      SecurityGroupIngress:
-        IpProtocol: tcp
-        FromPort: 5432
-        ToPort: 5432
-        SourceSecurityGroupId: !GetAtt application.GroupId
-      
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
@@ -288,25 +265,19 @@ Resources:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
-  
-  DBinstance: 
-    Type: AWS::RDS::DBInstance
-    Properties: 
-      VPCSecurityGroups: [!Ref database]
-      AllocatedStorage: "5"
-      DBInstanceIdentifier: !Ref DBInstanceIden
-      DBInstanceClass: "db.t3.micro"
-      Engine: postgres
-      MultiAZ: false
-      MasterUsername: csye6225
-      MasterUserPassword: Nevika.1996
-      DBSubnetGroupName: !Ref DBSubnetGroup
-      PubliclyAccessible: false
-      DBName: csye6225
-  
-    DeletionPolicy: "Snapshot"
 
-  
+  database: 
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupName: DBSecurityGroup
+      GroupDescription: 'Postgres DB security group'
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        SourceSecurityGroupId: !GetAtt application.GroupId
+
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -323,7 +294,6 @@ Resources:
                   - !Ref "AWS::StackId"
           - !Ref RootDomainName
       AccessControl: Private
-
       LifecycleConfiguration:
         Rules:
           - Id: Rule for transition from Standard storage to Standard_IA
@@ -343,14 +313,49 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
 
-
   RDSParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties:
-      Family: postgres12
+      Family: postgres13
       Description: Configuration values for postgres
-     
 
+  DBinstance: 
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      VPCSecurityGroups: [!Ref database]
+      AllocatedStorage: "30"
+      DBInstanceIdentifier: !Ref DBInstanceIden
+      DBInstanceClass: "db.t3.micro"
+      Engine: postgres
+      MultiAZ: false
+      MasterUsername: csye
+      MasterUserPassword: Nevika.1996
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      DBName: csye6225
+      DBParameterGroupName: !Ref RDSParameterGroup
+
+  EC2CSYE6225:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      #RoleName: EC2-CSYE6225
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2CSYE6225
 
   WebAppS3:
     Type: AWS::IAM::Policy
@@ -371,29 +376,65 @@ Resources:
       Roles:
         - !Ref EC2CSYE6225
 
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      InstanceType: t2.micro
+      ImageId: !Ref ImageAMIId
+      DisableApiTermination: false
+      KeyName: !Ref SSHKey
+      SecurityGroupIds : 
+      - !GetAtt "application.GroupId"
+      SubnetId : !Ref PublicSubnet1
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdm"
+          Ebs: 
+            VolumeType: !Ref VolumeTypeValue
+            DeleteOnTermination: "true"
+            VolumeSize: !Ref VolumeSizeValue
+      IamInstanceProfile: !Ref EC2InstanceProfile
 
-  EC2CSYE6225:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service:
-                - ec2.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      RoleName: EC2-CSYE6225
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          cat > /etc/environment << 'EOF'
+            export DB_USERNAME="csye"
+            export DB_PASSWORD="Nevika.1996"
+            export DB_NAME="csye6225"
+            export DB_CONNECTION=${DBinstance.Endpoint.Address}
+
+            export S3_BUCKET_NAME="${S3Bucket}
+          EOF 
+          source /etc/profile
+          source /etc/environment
+          cd /home/ec2-user/webservice
+          rm -rf node_modules
+          sudo npm i
+          sudo systemctl enable myapp
+          sudo systemctl start myapp
+          sudo pm2 reload all --update-env
 
   
-  EC2InstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: /
-      Roles:
-        - !Ref EC2CSYE6225
+  
+
+ 
+  
+
+  
+      
+  
+  
+  
+
+  
+
+  
+     
+  
+
+  
+
+  
 
   
 
