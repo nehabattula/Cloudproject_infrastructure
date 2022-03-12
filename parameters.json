@@ -1,40 +1,72 @@
 [
-        {
-        "ParameterKey": "VpcCIDR",
-        "ParameterValue": "10.192.0.0/17"
-        },
-        {
-        "ParameterKey": "EnvironmentName",
-        "ParameterValue": "DevEnvironment1"
-        },
-        {
-        "ParameterKey": "DestinationRouteCIDR",
-        "ParameterValue": "0.0.0.0/0"             
-        },
+  {
+  "ParameterKey": "VpcCIDR",
+  "ParameterValue": "10.192.0.0/17"
+  },
+  {
+  "ParameterKey": "EnvironmentName",
+  "ParameterValue": "Dev"
+  },
 
-        {
-          "ParameterKey":"ImageAMIId",
-            "ParameterValue":"ami-06fb17ccd0a67bcb4"      
-        },
+  {
+  "ParameterKey": "EnvironmentType",
+  "ParameterValue": "Dev"
+  },
 
-        {
-          "ParameterKey":"InstanceName",
-          "ParameterValue":"t2.micro"      
-        },
+  {
+    "ParameterKey": "RootDomainName",
+    "ParameterValue": "dev.nehabattula.me"
+  },
 
-        {
-          "ParameterKey":"SSHKey",
-          "ParameterValue":"csye6225test"      
-        },
+    
 
-        {
-          "ParameterKey":"VolumeTypeValue",
-          "ParameterValue":"gp2"      
-        },
+  {
+    "ParameterKey": "DBUsername",
+    "ParameterValue": "postgres"
+    },
 
-        {
-          "ParameterKey":"VolumeSizeValue",
-          "ParameterValue":"20"      
-        }
+
+  {
+      "ParameterKey": "DBPassword",
+      "ParameterValue": "Nevika.1996"
+  },
+
+  {
+  "ParameterKey": "DestinationRouteCIDR",
+  "ParameterValue": "0.0.0.0/0"             
+  },
+
+  {
+    "ParameterKey":"ImageAMIId",
+      "ParameterValue":"ami-07d99c523d18ef207"      
+  },
+
+  {
+    "ParameterKey":"InstanceName",
+    "ParameterValue":"t2.micro"      
+  },
+
+  
+  {
+    "ParameterKey":"SSHKey",
+    "ParameterValue":"csye6225test"      
+  },
+
+  {
+    "ParameterKey":"VolumeTypeValue",
+    "ParameterValue":"gp2"      
+  },
+
+  {
+    "ParameterKey":"VolumeSizeValue",
+    "ParameterValue":"20"      
+  },
+
+  
+
+  {
+    "ParameterKey":"DBInstanceIden",
+    "ParameterValue":"csye6225"      
+  }
 
 ]
