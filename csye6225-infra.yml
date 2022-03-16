@@ -1,4 +1,4 @@
-Description:  This template deploys a VPC, with 3 public subnets spread
+Description:  This template deploys a VPC, with 3 public subnets spreading
   across three Availability Zones. It deploys an internet gateway, with a default
   route on the public subnets.
 
