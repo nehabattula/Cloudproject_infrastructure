@@ -1,4 +1,4 @@
-Description:  This template deploys a VPC, with 3 public subnets spread
+Description:  This template deploys a VPC, with 3 public subnets spreading
   across three Availability Zones. It deploys an internet gateway, with a default
   route on the public subnets.
 
@@ -17,6 +17,14 @@ Parameters:
     Description: Username for Postgresql database access
     Type: String
     Default: "postgres"
+  
+  # SecretKey:
+  #   Description: AWS Secret access key
+  #   Type: String
+  
+  # AccessKey:
+  #   Description: AWS Access key
+  #   Type: String
 
   DBPassword:
     NoEcho: "true"
@@ -267,6 +275,10 @@ Resources:
         - !Ref PrivateSubnet3
 
   database: 
+    DependsOn:
+      - PrivateSubnet1
+      - PrivateSubnet2
+      - PrivateSubnet3
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId: !Ref VPC
@@ -376,7 +388,7 @@ Resources:
       Roles:
         - !Ref EC2CSYE6225
 
-  EC2Instance:
+  EC2Instance2:
     Type: AWS::EC2::Instance
     Properties: 
       InstanceType: t2.micro
@@ -395,24 +407,25 @@ Resources:
       IamInstanceProfile: !Ref EC2InstanceProfile
 
       UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          cat > /etc/environment << 'EOF'
-            export DB_USERNAME="csye"
-            export DB_PASSWORD="Nevika.1996"
-            export DB_NAME="csye6225"
-            export DB_CONNECTION=${DBinstance.Endpoint.Address}
-
-            export S3_BUCKET_NAME="${S3Bucket}
-          EOF 
-          source /etc/profile
-          source /etc/environment
-          cd /home/ec2-user/webservice
-          rm -rf node_modules
-          sudo npm i
-          sudo systemctl enable myapp
-          sudo systemctl start myapp
-          sudo pm2 reload all --update-env
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            cat > /etc/environment << 'EOF'
+              export DB_USERNAME=csye
+              export DB_PASSWORD=Nevika.1996
+              export DB_NAME=csye6225
+              export DB_CONNECTION=${DBinstance.Endpoint.Address}
+              export S3_BUCKET_NAME=${S3Bucket}
+            EOF
+            source /etc/profile
+            source /etc/environment
+            cd /home/ec2-user/webservice
+            rm -rf node_modules
+            sudo npm i
+            sudo systemctl enable myapp
+            sudo systemctl start myapp
+            sleep 20
+            sudo pm2 reload all --update-env
 
   
   
