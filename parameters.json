@@ -38,7 +38,7 @@
 
   {
     "ParameterKey":"ImageAMIId",
-      "ParameterValue":"ami-0c4f214987c06f12d"      
+      "ParameterValue":"ami-0ed464e10477b7d56"      
   },
 
   {
@@ -61,20 +61,6 @@
     "ParameterKey":"VolumeSizeValue",
     "ParameterValue":"20"      
   },
-
-  
-  {
-    "ParameterKey":"SecretKey",
-    "ParameterValue":"82DT0DMMl6UBWcRkCaqZxcFfloCB/shkgahV4Cn5"      
-  },
-
-  
-  {
-    "ParameterKey":"AccessKey",
-    "ParameterValue":"AKIASQP6TVXV2ZQIVKPC"      
-  },
-
-  
 
   {
     "ParameterKey":"DBInstanceIden",

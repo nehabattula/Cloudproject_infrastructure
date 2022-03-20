@@ -18,13 +18,13 @@ Parameters:
     Type: String
     Default: "postgres"
   
-  SecretKey:
-    Description: AWS Secret access key
-    Type: String
+  # SecretKey:
+  #   Description: AWS Secret access key
+  #   Type: String
   
-  AccessKey:
-    Description: AWS Access key
-    Type: String
+  # AccessKey:
+  #   Description: AWS Access key
+  #   Type: String
 
   DBPassword:
     NoEcho: "true"
@@ -415,8 +415,6 @@ Resources:
               export DB_PASSWORD=Nevika.1996
               export DB_NAME=csye6225
               export DB_CONNECTION=${DBinstance.Endpoint.Address}
-              export AWS_SECRET_KEY=${SecretKey}
-              export AWS_ACCESS_KEY=${AccessKey}
               export S3_BUCKET_NAME=${S3Bucket}
             EOF
             source /etc/profile
