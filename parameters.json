@@ -8,16 +8,16 @@
     "ParameterValue": "Dev"
     },
     {
+        "ParameterKey": "DBUsername",
+        "ParameterValue": "csye"
+    },
+    {
+        "ParameterKey": "DBPassword",
+        "ParameterValue": "Nevika.1996"
+    },
+    {
     "ParameterKey": "DestinationRouteCIDR",
     "ParameterValue": "0.0.0.0/0"
-    },
-    {
-    "ParameterKey": "EC2SecurityGroupName",
-    "ParameterValue": "Security Group Name"
-    },
-    {
-    "ParameterKey": "EC2SecurityGroupDescription",
-    "ParameterValue": "EC2 security group description"
     },
     {
         "ParameterKey": "ImageAMIId",
@@ -40,18 +40,6 @@
         "ParameterValue": "prod.nehabattula.me"   
     },
     {
-        "ParameterKey": "Family",
-        "ParameterValue": "postgres13"   
-    },
-    {
-        "ParameterKey": "Engine",
-        "ParameterValue": "postgres"   
-    },
-    {
-        "ParameterKey": "InstanceClass",
-        "ParameterValue": "db.t3.micro"   
-    },
-    {
         "ParameterKey": "DBInstanceID",
         "ParameterValue": "csye6225"   
     },
@@ -62,15 +50,5 @@
     {
         "ParameterKey": "DBAllocatedStorage",
         "ParameterValue": "20"
-    },
-    {
-        "ParameterKey": "DBUsername",
-        "ParameterValue": "csye"
-    },
-    {
-        "ParameterKey": "DBPassword",
-        "ParameterValue": "Nevika.1996"
     }
-
-    
 ]
