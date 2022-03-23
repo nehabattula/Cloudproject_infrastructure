@@ -15,14 +15,6 @@ Parameters:
     Description: Destination CIDR for Route
     Type: String
     Default: 0.0.0.0/0
-  EC2SecurityGroupName:
-    Description: Security Group Name
-    Type: String
-    Default: ""
-  EC2SecurityGroupDescription:
-    Description: Security Group Description
-    Type: String
-    Default: ""
   ImageAMIId:
     Description: AMI Id
     Type: String
@@ -35,22 +27,6 @@ Parameters:
     Description: Size
     Type: String
     Default: ""
-  RootDomainName:
-    Description: Domain Name of prod account
-    Type: String
-    Default: prod.nehabattula.me
-  Family:
-    Description: Family Name
-    Type: String
-    Default: postgres13
-  Engine:
-    Description: Engine
-    Type: String
-    Default: postgres
-  InstanceClass:
-    Description: Instance Class
-    Type: String
-    Default: db.t3.micro
   DBInstanceID:
     Description: My database instance
     Type: String
@@ -67,6 +43,10 @@ Parameters:
     NoEcho: "true"
     Description: Password for postgresql database access
     Type: String
+  RootDomainName:
+    Description: Domain Name of prod account
+    Type: String
+    Default: prod.nehabattula.me
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -95,7 +75,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs ""]
+      AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Select [0, !Cidr [!GetAtt VPC.CidrBlock, 6, 8]]
       MapPublicIpOnLaunch: true
       Tags:
@@ -106,7 +86,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, !GetAZs ""]
+      AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: !Select [1, !Cidr [!GetAtt VPC.CidrBlock, 6, 8]]
       MapPublicIpOnLaunch: true
       Tags:
@@ -117,7 +97,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [2, !GetAZs ""]
+      AvailabilityZone: !Select [2, !GetAZs '']
       CidrBlock: !Select [2, !Cidr [!GetAtt VPC.CidrBlock, 6, 8]]
       MapPublicIpOnLaunch: true
       Tags:
@@ -177,7 +157,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs ""]
+      AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Select [3, !Cidr [!GetAtt VPC.CidrBlock, 6, 8]]
       MapPublicIpOnLaunch: false
       Tags:
@@ -188,7 +168,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, !GetAZs ""]
+      AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: !Select [4, !Cidr [!GetAtt VPC.CidrBlock, 6, 8]]
       MapPublicIpOnLaunch: false
       Tags:
@@ -199,7 +179,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [2, !GetAZs ""]
+      AvailabilityZone: !Select [2, !GetAZs '']
       CidrBlock: !Select [5, !Cidr [!GetAtt VPC.CidrBlock, 6, 8]]
       MapPublicIpOnLaunch: false
       Tags:
@@ -242,6 +222,10 @@ Resources:
         - !Ref PrivateSubnet3
 
   database:
+    DependsOn:
+      - PrivateSubnet1
+      - PrivateSubnet2
+      - PrivateSubnet3
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: DatabaseSG
@@ -480,16 +464,6 @@ Resources:
         - !GetAtt loadbalancer.GroupId
       Type: application
 
-  EC2LoadBalancerListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      LoadBalancerArn: !Ref MyLoadBalancer
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref EC2TargetGroupLB
-      Port: 80
-      Protocol: HTTP
-
   EC2TargetGroupLB:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -505,7 +479,17 @@ Resources:
       VpcId: !Ref VPC
       TargetType: instance
 
-  myDNSRecord:
+  EC2LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyLoadBalancer
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref EC2TargetGroupLB
+      Port: 80
+      Protocol: HTTP
+
+  applicationDNS:
     Type: AWS::Route53::RecordSetGroup
     Properties:
       HostedZoneName: prod.nehabattula.me.
