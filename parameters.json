@@ -1,70 +1,76 @@
 [
-  {
-  "ParameterKey": "VpcCIDR",
-  "ParameterValue": "10.192.0.0/17"
-  },
-  {
-  "ParameterKey": "EnvironmentName",
-  "ParameterValue": "Dev"
-  },
-
-  {
-  "ParameterKey": "EnvironmentType",
-  "ParameterValue": "Dev"
-  },
-
-  {
-    "ParameterKey": "RootDomainName",
-    "ParameterValue": "dev.nehabattula.me"
-  },
+    {
+    "ParameterKey": "VpcCIDR",
+    "ParameterValue": "10.192.0.0/17"
+    },
+    {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "Dev"
+    },
+    {
+    "ParameterKey": "DestinationRouteCIDR",
+    "ParameterValue": "0.0.0.0/0"
+    },
+    {
+    "ParameterKey": "EC2SecurityGroupName",
+    "ParameterValue": "Security Group Name"
+    },
+    {
+    "ParameterKey": "EC2SecurityGroupDescription",
+    "ParameterValue": "EC2 security group description"
+    },
+    {
+        "ParameterKey": "ImageAMIId",
+        "ParameterValue": "ami-040a4ff16470fbad2"   
+    },
+    {
+        "ParameterKey": "SSHKey",
+        "ParameterValue": "csye6225test"   
+    },
+    {
+        "ParameterKey": "VolumeTypeValue",
+        "ParameterValue": "gp2"   
+    },
+    {
+        "ParameterKey": "VolumeSizeValue",
+        "ParameterValue": "20"   
+    },
+    {
+        "ParameterKey": "RootDomainName",
+        "ParameterValue": "prod.nehabattula.me"   
+    },
+    {
+        "ParameterKey": "Family",
+        "ParameterValue": "postgres13"   
+    },
+    {
+        "ParameterKey": "Engine",
+        "ParameterValue": "postgres"   
+    },
+    {
+        "ParameterKey": "InstanceClass",
+        "ParameterValue": "db.t3.micro"   
+    },
+    {
+        "ParameterKey": "DBInstanceID",
+        "ParameterValue": "csye6225"   
+    },
+    {
+        "ParameterKey": "DBName",
+        "ParameterValue": "csye6225"   
+    },
+    {
+        "ParameterKey": "DBAllocatedStorage",
+        "ParameterValue": "20"
+    },
+    {
+        "ParameterKey": "DBUsername",
+        "ParameterValue": "csye"
+    },
+    {
+        "ParameterKey": "DBPassword",
+        "ParameterValue": "Nevika.1996"
+    }
 
     
-
-  {
-    "ParameterKey": "DBUsername",
-    "ParameterValue": "postgres"
-    },
-
-
-  {
-      "ParameterKey": "DBPassword",
-      "ParameterValue": "Nevika.1996"
-  },
-
-  {
-  "ParameterKey": "DestinationRouteCIDR",
-  "ParameterValue": "0.0.0.0/0"             
-  },
-
-  {
-    "ParameterKey":"ImageAMIId",
-      "ParameterValue":"ami-0ed464e10477b7d56"      
-  },
-
-  {
-    "ParameterKey":"InstanceName",
-    "ParameterValue":"t2.micro"      
-  },
-
-  
-  {
-    "ParameterKey":"SSHKey",
-    "ParameterValue":"csye6225test"      
-  },
-
-  {
-    "ParameterKey":"VolumeTypeValue",
-    "ParameterValue":"gp2"      
-  },
-
-  {
-    "ParameterKey":"VolumeSizeValue",
-    "ParameterValue":"20"      
-  },
-
-  {
-    "ParameterKey":"DBInstanceIden",
-    "ParameterValue":"csye6225"      
-  }
-
 ]
