@@ -497,5 +497,5 @@ Resources:
         - Name: prod.nehabattula.me.
           Type: A
           AliasTarget:
-            DNSName: !GetAtt "MyLoadBalancer.DNSName"
             HostedZoneId: !GetAtt "MyLoadBalancer.CanonicalHostedZoneID"
+            DNSName: !GetAtt "MyLoadBalancer.DNSName"
