@@ -21,7 +21,7 @@
     },
     {
         "ParameterKey": "ImageAMIId",
-        "ParameterValue": "ami-040a4ff16470fbad2"   
+        "ParameterValue": "ami-0560bdebc751f1025"   
     },
     {
         "ParameterKey": "SSHKey",
