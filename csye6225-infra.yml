@@ -364,13 +364,13 @@ Resources:
       MinSize: "3"
       MaxSize: "5"
       DesiredCapacity: "3"
-      LaunchConfigurationName: !Ref autoScalingLaunchConfig
+      LaunchConfigurationName: !Ref asglaunchconfig
       Tags:
         - Key: "Name"
           PropagateAtLaunch: true
           Value: "EC2AutoScalingGroup"
 
-  autoScalingLaunchConfig:
+  asglaunchconfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       AssociatePublicIpAddress: true
@@ -378,7 +378,13 @@ Resources:
       ImageId: !Ref ImageAMIId
       InstanceType: t2.micro
       KeyName: !Ref SSHKey
-      LaunchConfigurationName: autoScalingLaunchConfig
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdm"
+          Ebs:
+            VolumeType: "gp2"
+            DeleteOnTermination: "true"
+            VolumeSize: "20"
+      LaunchConfigurationName: AutoScalingLaunchConfig
       SecurityGroups:
         - !GetAtt "application.GroupId"
       UserData:
@@ -452,6 +458,7 @@ Resources:
 
   MyLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: InternetGatewayAttachment
     Properties:
       IpAddressType: ipv4
       Name: "myLoadBalancer"
