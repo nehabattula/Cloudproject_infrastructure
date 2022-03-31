@@ -5,7 +5,7 @@
     },
     {
     "ParameterKey": "EnvironmentName",
-    "ParameterValue": "Dev"
+    "ParameterValue": "Production"
     },
     {
         "ParameterKey": "DBUsername",
@@ -21,7 +21,7 @@
     },
     {
         "ParameterKey": "ImageAMIId",
-        "ParameterValue": "ami-0560bdebc751f1025"   
+        "ParameterValue": "ami-0420e8f7a180b9607"
     },
     {
         "ParameterKey": "SSHKey",
@@ -40,7 +40,7 @@
         "ParameterValue": "prod.nehabattula.me"   
     },
     {
-        "ParameterKey": "DBInstanceID",
+        "ParameterKey": "DBInstanceIden",
         "ParameterValue": "csye6225"   
     },
     {

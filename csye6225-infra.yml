@@ -6,7 +6,7 @@ Parameters:
   EnvironmentName:
     Description: An environment name that is prefixed to resource names
     Type: String
-    Default: dev_env
+    Default: prod_env
   VpcCIDR:
     Description: IP range (CIDR notation) for this VPC
     Type: String
@@ -27,7 +27,7 @@ Parameters:
     Description: Size
     Type: String
     Default: ""
-  DBInstanceID:
+  DBInstanceIden:
     Description: My database instance
     Type: String
     Default: "csye6225"
@@ -80,7 +80,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+          Value: !Sub ${EnvironmentName} Public Subnet1
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -91,7 +91,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
+          Value: !Sub ${EnvironmentName} Public Subnet2
 
   PublicSubnet3:
     Type: AWS::EC2::Subnet
@@ -102,7 +102,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Public Subnet (AZ3)
+          Value: !Sub ${EnvironmentName} Public Subnet3
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -110,7 +110,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Public Routes
+          Value: Public Route Table
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -151,7 +151,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3002
           ToPort: 3002
-          SourceSecurityGroupId: !GetAtt loadbalancer.GroupId
+          SourceSecurityGroupId: !GetAtt loadbalancerSecurityGroup.GroupId
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -162,7 +162,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+          Value: !Sub ${EnvironmentName} Private Subnet1
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -173,7 +173,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+          Value: !Sub ${EnvironmentName} Private Subnet2
 
   PrivateSubnet3:
     Type: AWS::EC2::Subnet
@@ -184,38 +184,38 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+          Value: !Sub ${EnvironmentName} Private Subnet3
 
-  PrivateRouteTable:
+  PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Private Routes (AZ1)
+          Value: !Sub ${EnvironmentName} Private Routes
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet1
 
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet2
 
   PrivateSubnet3RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet3
 
-  myDBSubnetGroup:
-    Type: "AWS::RDS::DBSubnetGroup"
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: description
+      DBSubnetGroupDescription: subnetgroupdescription
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -228,8 +228,8 @@ Resources:
       - PrivateSubnet3
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: DatabaseSG
-      GroupDescription: "Database Security Group"
+      GroupName: DBSecurityGroup
+      GroupDescription: "Postgres DB Security Group"
       VpcId: !Ref VPC
       SecurityGroupIngress:
         IpProtocol: tcp
@@ -239,7 +239,7 @@ Resources:
 
   S3Bucket:
     Type: AWS::S3::Bucket
-    Description: Creating Amazon S3 bucket
+    Description: S3 bucket creation
     Properties:
       BucketName: !Join
         - "-"
@@ -275,29 +275,29 @@ Resources:
         Status: Enabled
 
   RDSParameterGroup:
-    Type: "AWS::RDS::DBParameterGroup"
+    Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: CloudFormation Postgres Parameter Group
       Family: postgres13
 
-  MyDBInstance:
-    Type: "AWS::RDS::DBInstance"
+  DBinstance:
+    Type: AWS::RDS::DBInstance
     Properties:
+      VPCSecurityGroups: [!Ref database]
+      AllocatedStorage: "30"
+      DBInstanceIdentifier: !Ref DBInstanceIden
       Engine: postgres
       DBInstanceClass: "db.t3.micro"
       MultiAZ: false
-      DBInstanceIdentifier: !Ref DBInstanceID
       MasterUsername: csye
       MasterUserPassword: Nevika.1996
-      DBSubnetGroupName: !Ref myDBSubnetGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
       PubliclyAccessible: false
       DBName: csye6225
-      VPCSecurityGroups: [!Ref database]
       DBParameterGroupName: !Ref RDSParameterGroup
-      AllocatedStorage: "50"
 
   EC2CSYE6225:
-    Type: "AWS::IAM::Role"
+    Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -311,16 +311,16 @@ Resources:
       Path: "/"
 
   EC2InstanceProfile:
-    Type: "AWS::IAM::InstanceProfile"
+    Type: AWS::IAM::InstanceProfile
     Properties:
       Path: "/"
       Roles:
         - Ref: "EC2CSYE6225"
 
   WebAppS3:
-    Type: "AWS::IAM::Policy"
+    Type: AWS::IAM::Policy
     Properties:
-      PolicyName: "myWebAppS3"
+      PolicyName: "myWebApplicationS3"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -335,12 +335,12 @@ Resources:
       Roles:
         - Ref: "EC2CSYE6225"
 
-  loadbalancer:
+  loadbalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: LoadBalancerSG
-      GroupDescription: "Load Balancer Security Group"
       VpcId: !Ref VPC
+      GroupName: LBSecurityGroup1
+      GroupDescription: "Load Balancer Security Group"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -394,7 +394,7 @@ Resources:
             export DB_USERNAME="csye"
             export DB_PASSWORD="Nevika.1996"
             export DB_NAME="csye6225"
-            export DB_CONNECTION=${MyDBInstance.Endpoint.Address}
+            export DB_CONNECTION=${DBinstance.Endpoint.Address}
             export S3_BUCKET_NAME="${S3Bucket}
           EOF
           source /etc/profile
@@ -407,14 +407,14 @@ Resources:
           sudo pm2 reload all --update-env
 
   UpScalingPolicy:
-    Type: "AWS::AutoScaling::ScalingPolicy"
+    Type: AWS::AutoScaling::ScalingPolicy
     Properties:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName: !Ref autoScalingGroup
       ScalingAdjustment: 1
 
   DownScalingPolicy:
-    Type: "AWS::AutoScaling::ScalingPolicy"
+    Type: AWS::AutoScaling::ScalingPolicy
     Properties:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName: !Ref autoScalingGroup
@@ -425,10 +425,10 @@ Resources:
     Properties:
       AlarmDescription: Trigger CPU alarm if threshold > 3
       AlarmName: CPU Alarm High
+      Namespace: AWS/EC2
       AlarmActions:
         - !Ref UpScalingPolicy
       MetricName: CPUUtilization
-      Namespace: AWS/EC2
       Statistic: Average
       Period: "300"
       EvaluationPeriods: "1"
@@ -443,10 +443,10 @@ Resources:
     Properties:
       AlarmDescription: Trigger CPU alarm if threshold is < 2
       AlarmName: CPU Alarm Low
+      Namespace: AWS/EC2
       AlarmActions:
         - !Ref DownScalingPolicy
       MetricName: CPUUtilization
-      Namespace: AWS/EC2
       Statistic: Average
       Period: "300"
       EvaluationPeriods: "1"
@@ -456,19 +456,19 @@ Resources:
         - Name: AutoScalingGroupName
           Value: !Ref autoScalingGroup
 
-  MyLoadBalancer:
+  EC2LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: InternetGatewayAttachment
     Properties:
       IpAddressType: ipv4
-      Name: "myLoadBalancer"
+      Name: ApplicationLoadBalancer
       Scheme: internet-facing
       Subnets:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
         - !Ref PublicSubnet3
       SecurityGroups:
-        - !GetAtt loadbalancer.GroupId
+        - !GetAtt loadbalancerSecurityGroup.GroupId
       Type: application
 
   EC2TargetGroupLB:
@@ -480,7 +480,7 @@ Resources:
       HealthCheckProtocol: HTTP
       HealthyThresholdCount: 5
       UnhealthyThresholdCount: 2
-      Name: AppTargetGroup1
+      Name: EC2AppTargetGroup
       Port: 3002
       Protocol: HTTP
       VpcId: !Ref VPC
@@ -489,7 +489,7 @@ Resources:
   EC2LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      LoadBalancerArn: !Ref MyLoadBalancer
+      LoadBalancerArn: !Ref EC2LoadBalancer
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref EC2TargetGroupLB
@@ -504,5 +504,206 @@ Resources:
         - Name: prod.nehabattula.me.
           Type: A
           AliasTarget:
-            HostedZoneId: !GetAtt "MyLoadBalancer.CanonicalHostedZoneID"
-            DNSName: !GetAtt "MyLoadBalancer.DNSName"
+            HostedZoneId: !GetAtt "EC2LoadBalancer.CanonicalHostedZoneID"
+            DNSName: !GetAtt "EC2LoadBalancer.DNSName"
+  CodeDeployEC2S3:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AccessToEC2ForReadingS3
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:GetObject'
+              - 's3:List*'
+            Resource:
+              - !Join [":::",["arn:aws:s3", "mycodedeploybucket96"]]
+              - !Join [
+                  "/",
+                  [
+                    !Join [":::", ["arn:aws:s3","mycodedeploybucket96"]],
+                    "*",
+                  ],
+                ]
+      Roles:
+        - !Ref EC2CSYE6225
+
+  GHUploadToS3:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AccessToGHAToUploadToS3
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:Get*'
+              - 's3:List*'
+              - 's3:PutObject'
+            Resource:
+              - "arn:aws:s3:::mycodedeploybucket96"
+              - "arn:aws:s3:::mycodedeploybucket96/*"
+      Users:
+        - ghactions
+
+  ghec2ami:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: gh-ec2-ami
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'ec2:AttachVolume'
+              - 'ec2:AuthorizeSecurityGroupIngress'
+              - 'ec2:CopyImage'
+              - 'ec2:CreateImage'
+              - 'ec2:CreateKeypair'
+              - 'ec2:CreateSecurityGroup'
+              - 'ec2:CreateSnapshot'
+              - 'ec2:CreateTags'
+              - 'ec2:CreateVolume'
+              - 'ec2:DeleteKeyPair'
+              - 'ec2:DeleteSecurityGroup'
+              - 'ec2:DeleteSnapshot'
+              - 'ec2:DeleteVolume'
+              - 'ec2:DeregisterImage'
+              - 'ec2:DescribeImageAttribute'
+              - 'ec2:DescribeImages'
+              - 'ec2:DescribeInstances'
+              - 'ec2:DescribeInstanceStatus'
+              - 'ec2:DescribeRegions'
+              - 'ec2:DescribeSecurityGroups'
+              - 'ec2:DescribeSnapshots'
+              - 'ec2:DescribeSubnets'
+              - 'ec2:DescribeTags'
+              - 'ec2:DescribeVolumes'
+              - 'ec2:DetachVolume'
+              - 'ec2:GetPasswordData'
+              - 'ec2:ModifyImageAttribute'
+              - 'ec2:ModifyInstanceAttribute'
+              - 'ec2:ModifySnapshotAttribute'
+              - 'ec2:RegisterImage'
+              - 'ec2:RunInstances'
+              - 'ec2:StopInstances'
+              - 'ec2:TerminateInstances'
+            Resource: "*"
+      Users:
+        - ghactions
+  GHCodeDeploy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "GHCodeDeploy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: [
+            {
+              "Effect": "Allow",
+              "Action":
+                [
+                  "codedeploy:RegisterApplicationRevision",
+                  "codedeploy:GetApplicationRevision",
+                ],
+              "Resource":
+                [
+                  !Join [
+                    "",
+                    [
+                      "arn:aws:codedeploy:us-east-1:",
+                      !Ref "AWS::AccountId",
+                      ":application:csye6225webapp",
+                    ],
+                  ],
+                ],
+            },
+            # "arn:aws:codedeploy:us-east-1:751494202577:application:csye6225webapp",
+            {
+              "Effect": "Allow",
+              "Action":
+                ["codedeploy:CreateDeployment", "codedeploy:GetDeployment"],
+              "Resource": ["*"],
+            },
+            {
+              "Effect": "Allow",
+              "Action": ["codedeploy:GetDeploymentConfig"],
+              "Resource":
+                [
+                  !Join [
+                    "",
+                    [
+                      "arn:aws:codedeploy:us-east-1:",
+                      !Ref "AWS::AccountId",
+                      ":deploymentconfig:CodeDeployDefault.OneAtATime",
+                    ],
+                  ],
+                  !Join [
+                    "",
+                    [
+                      "arn:aws:codedeploy:us-east-1:",
+                      !Ref "AWS::AccountId",
+                      ":deploymentconfig:CodeDeployDefault.HalfAtATime",
+                    ],
+                  ],
+                  !Join [
+                    "",
+                    [
+                      "arn:aws:codedeploy:us-east-1:",
+                      !Ref "AWS::AccountId",
+                      ":deploymentconfig:CodeDeployDefault.AllAtOnce",
+                    ],
+                  ],
+                ],
+            },
+          ]
+      # "arn:aws:codedeploy:us-east-1:751494202577:deploymentconfig:CodeDeployDefault.OneAtATime",
+      # "arn:aws:codedeploy:us-east-1:751494202577:deploymentconfig:CodeDeployDefault.HalfAtATime",
+      # "arn:aws:codedeploy:us-east-1:751494202577:deploymentconfig:CodeDeployDefault.AllAtOnce",
+      Users:
+        - "ghactions"
+  
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+      Description: Allows Code deploy to call AWS services such as Auto Scaling on your behalf
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service:
+                - codedeploy.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/"
+
+  csye6225webapp:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: Server
+      ApplicationName: csye6225webapp
+
+  csye6225webappdeployment:
+    DependsOn: csye6225webapp
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref csye6225webapp
+      AutoScalingGroups:
+      - Ref: autoScalingGroup
+      DeploymentGroupName: "csye6225webappdeployment"
+      ServiceRoleArn: !GetAtt CodeDeployServiceRole.Arn
+      DeploymentStyle:
+        DeploymentType: "IN_PLACE"
+        DeploymentOption: "WITHOUT_TRAFFIC_CONTROL"
+      DeploymentConfigName: CodeDeployDefault.AllAtOnce
+      AutoRollbackConfiguration:
+        Enabled: "true"
+        Events:
+          - DEPLOYMENT_FAILURE
+      # Ec2TagFilters:
+      #   - Key: Name
+      #     Value: EC2AutoScalingGroup
+      #     Type: KEY_AND_VALUE
