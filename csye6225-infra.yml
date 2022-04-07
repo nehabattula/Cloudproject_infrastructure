@@ -405,6 +405,7 @@ Resources:
           sudo systemctl start myapp
           sleep 20
           sudo pm2 reload all --update-env
+          sudo service codedeploy-agent start
 
   UpScalingPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
@@ -707,3 +708,29 @@ Resources:
       #   - Key: Name
       #     Value: EC2AutoScalingGroup
       #     Type: KEY_AND_VALUE
+      
+  cloudwatchagentpolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "EC2CloudWatchPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'cloudwatch:PutMetricData'
+              - 'ec2:DescribeTags'
+              - 'logs:PutLogEvents'
+              - 'logs:DescribeLogStreams'
+              - 'logs:DescribeLogGroups'
+              - 'logs:CreateLogStream'
+              - 'logs:CreateLogGroup'
+              - 'logs:DescribeVolumes'
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - 'ssm:GetParameter'
+              - 'ssm:PutParameter'
+            Resource: "arn:aws:ssm:*:*:parameter/AmazonCloudWatch-*"
+      Roles:
+        - Ref: EC2CSYE6225
