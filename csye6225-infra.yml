@@ -289,6 +289,8 @@ Resources:
       Engine: postgres
       DBInstanceClass: "db.t3.micro"
       MultiAZ: false
+      KmsKeyId: !Ref RDSKey
+      StorageEncrypted: true
       MasterUsername: csye
       MasterUserPassword: Nevika.1996
       DBSubnetGroupName: !Ref DBSubnetGroup
@@ -354,6 +356,10 @@ Resources:
   autoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      AvailabilityZones:
+        - !Select [0, !GetAZs '']
+        - !Select [1, !GetAZs '']
+        - !Select [2, !GetAZs '']
       TargetGroupARNs:
         - !Ref EC2TargetGroupLB
       VPCZoneIdentifier:
@@ -363,50 +369,60 @@ Resources:
       Cooldown: "60"
       MinSize: "3"
       MaxSize: "5"
+      LaunchTemplate:
+        LaunchTemplateId: !Ref asglaunchconfig
+        Version: !GetAtt asglaunchconfig.LatestVersionNumber
       DesiredCapacity: "3"
-      LaunchConfigurationName: !Ref asglaunchconfig
       Tags:
         - Key: "Name"
           PropagateAtLaunch: true
           Value: "EC2AutoScalingGroup"
 
   asglaunchconfig:
-    Type: AWS::AutoScaling::LaunchConfiguration
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      AssociatePublicIpAddress: true
-      IamInstanceProfile: !Ref EC2InstanceProfile
-      ImageId: !Ref ImageAMIId
-      InstanceType: t2.micro
-      KeyName: !Ref SSHKey
-      BlockDeviceMappings:
-        - DeviceName: "/dev/sdm"
-          Ebs:
-            VolumeType: "gp2"
-            DeleteOnTermination: "true"
-            VolumeSize: "20"
-      LaunchConfigurationName: AutoScalingLaunchConfig
-      SecurityGroups:
-        - !GetAtt "application.GroupId"
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          cat > /etc/environment << 'EOF'
-            export DB_USERNAME="csye"
-            export DB_PASSWORD="Nevika.1996"
-            export DB_NAME="csye6225"
-            export DB_CONNECTION=${DBinstance.Endpoint.Address}
-            export S3_BUCKET_NAME="${S3Bucket}
-          EOF
-          source /etc/profile
-          cd /home/ec2-user/webservice
-          rm -rf node_modules
-          sudo npm i
-          sudo systemctl enable myapp
-          sudo systemctl start myapp
-          sleep 20
-          sudo pm2 reload all --update-env
-          sudo service codedeploy-agent start
-
+      LaunchTemplateName: !Sub ${AWS::StackName}-launch-template
+      LaunchTemplateData:
+        BlockDeviceMappings:
+          - DeviceName: "/dev/sdm"
+            Ebs:
+              VolumeType: "gp2"
+              DeleteOnTermination: "true"
+              VolumeSize: "20"
+              Encrypted: true
+              KmsKeyId: !GetAtt EBSkey.Arn
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: true
+            DeleteOnTermination: true
+            Groups:
+              - !Ref application
+        IamInstanceProfile: 
+          Arn: !GetAtt
+            - EC2InstanceProfile
+            - Arn
+        ImageId: !Ref ImageAMIId
+        InstanceType: t2.micro
+        KeyName: !Ref SSHKey
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            cat > /etc/environment << 'EOF'
+              export DB_USERNAME="csye"
+              export DB_PASSWORD="Nevika.1996"
+              export DB_NAME="csye6225"
+              export DB_CONNECTION=${DBinstance.Endpoint.Address}
+              export S3_BUCKET_NAME="${S3Bucket}
+            EOF
+            source /etc/profile
+            cd /home/ec2-user/webservice
+            rm -rf node_modules
+            sudo npm i
+            sudo systemctl enable myapp
+            sudo systemctl start myapp
+            sleep 20
+            sudo pm2 reload all --update-env
+            sudo service codedeploy-agent start
   UpScalingPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
@@ -494,9 +510,10 @@ Resources:
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref EC2TargetGroupLB
-      Port: 80
-      Protocol: HTTP
-
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: arn:aws:acm:us-east-1:172869529067:certificate/8847edd3-23f7-45b2-936b-7ddc369545b3
   applicationDNS:
     Type: AWS::Route53::RecordSetGroup
     Properties:
@@ -888,3 +905,34 @@ Resources:
               - !GetAtt DynamoDBUsernameTable.Arn
       Roles:
         - !Ref LambdaRole
+  EBSkey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: A symmetric key for encryption of EBS
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-default-ebs
+        Statement:
+          - Sid: Enabling Key to the resource
+            Effect: Allow
+            Principal:
+              AWS:
+                - arn:aws:iam::172869529067:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling
+                - arn:aws:iam::172869529067:root
+            Action: 'kms:*'
+            Resource: '*'
+  RDSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: A symmetric key for encryption of RDS
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-default-rds
+        Statement:
+          - Sid: Enabling Key to the resource
+            Effect: Allow
+            Principal:
+              AWS:
+                - arn:aws:iam::172869529067:root
+            Action: 'kms:*'
+            Resource: '*'
